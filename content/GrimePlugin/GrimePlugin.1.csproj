@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net48</TargetFramework>
+    <AssemblyName>GrimePlugin</AssemblyName>
+    <Version>0.1.0</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <RestoreAdditionalProjectSources>
+        https://nuget.bepinex.dev/v3/index.json
+    </RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.1.0" />
+    <PackageReference Include="UnityEngine.Modules" Version="UnityVersion" IncludeAssets="compile" />
+    <PackageReference Include="Grime.GameLibs" Version="GrimeVersion"/>
+  </ItemGroup>
+
+  <Target Name="CopyMod" AfterTargets="PostBuildEvent">
+      <PropertyGroup>
+          <GrimeFolder>GrimeInstallPath</GrimeFolder>
+          <ModFolder>$(GrimeFolder)/Mods/$(TargetName)</ModFolder>
+      </PropertyGroup>
+
+      <ItemGroup>
+          <Binaries Include="$(TargetPath)"/>
+          <Binaries Include="$(TargetDir)/$(TargetName).pdb"/>
+      </ItemGroup>
+
+      <Copy SourceFiles="@(Binaries)" DestinationFolder="$(GrimeFolder)/plugins" />
+
+      <PropertyGroup>
+          <ExportFolder>bin/Publish</ExportFolder>
+      </PropertyGroup>
+      
+      <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ExportFolder)/archive/plugins"/>
+      <ZipDirectory SourceDirectory="$(ExportFolder)/archive" DestinationFile="$(ExportFolder)/$(TargetName).zip"/>
+      <RemoveDir Directories="$(ExportFolder)/archive"/>
+  </Target>
+</Project>
