@@ -16,7 +16,8 @@
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
     <PackageReference Include="BepInEx.PluginInfoProps" Version="1.1.0" />
     <PackageReference Include="UnityEngine.Modules" Version="UnityVersion" IncludeAssets="compile" />
-    <PackageReference Include="Grime.GameLibs" Version="GrimeVersion"/>
+    <!--If you're unable resolve this dependency, check that you're using the nuget v3 package feed instead of v2.-->
+    <PackageReference Include="Grime.GameLibs" Version="2.0.0-grimeGrimeVersion"/>
   </ItemGroup>
 
   <Target Name="CopyMod" AfterTargets="PostBuildEvent">
@@ -30,14 +31,14 @@
           <Binaries Include="$(TargetDir)/$(TargetName).pdb"/>
       </ItemGroup>
 
-      <Copy SourceFiles="@(Binaries)" DestinationFolder="$(GrimeFolder)/plugins" />
+      <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ModFolder)/plugins" />
 
       <PropertyGroup>
           <ExportFolder>bin/Publish</ExportFolder>
       </PropertyGroup>
       
       <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ExportFolder)/archive/plugins"/>
-      <ZipDirectory SourceDirectory="$(ExportFolder)/archive" DestinationFile="$(ExportFolder)/$(TargetName).zip"/>
+      <ZipDirectory SourceDirectory="$(ExportFolder)/archive" DestinationFile="$(ExportFolder)/$(TargetName).zip" Overwrite="True"/>
       <RemoveDir Directories="$(ExportFolder)/archive"/>
   </Target>
 </Project>
