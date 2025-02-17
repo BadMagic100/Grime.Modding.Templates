@@ -2,13 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
-    <AssemblyName>GrimePlugin.1</AssemblyName>
-    <Version>0.1.0</Version>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <RestoreAdditionalProjectSources>
         https://nuget.bepinex.dev/v3/index.json
     </RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!--These properties will control the generated PluginInfo. Version is also used by various parts of the build system.-->
+    <BepInExPluginGuid>grimeplugin__1</BepInExPluginGuid>
+    <BepInExPluginName>GrimePlugin.1</BepInExPluginName>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
