@@ -1,49 +1,76 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- 
+  Imports Grime path properties only if present in order to allow CI builds. The file should be gitignored.
+  If you are checking out from git and need to create a new one, you can use `dotnet new grimepath` to generate one.
+  -->
+  <Import Condition="Exists('GrimePath.props')" Project="GrimePath.props" />
 
   <PropertyGroup>
     <TargetFramework>net48</TargetFramework>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <RestoreAdditionalProjectSources>
-        https://nuget.bepinex.dev/v3/index.json
-    </RestoreAdditionalProjectSources>
-  </PropertyGroup>
 
-  <PropertyGroup>
-    <!--These properties will control the generated PluginInfo. Version is also used by various parts of the build system.-->
-    <BepInExPluginGuid>grimeplugin__1</BepInExPluginGuid>
-    <BepInExPluginName>GrimePlugin.1</BepInExPluginName>
-    <Version>0.1.0</Version>
+    <!-- Shortens and anonymizes paths in debug symbols relative to the project directory. Breakpoints will not work, however. -->
+    <PathMap Condition="'$(Configuration)' == 'Release'">$(MSBuildProjectDirectory)=/</PathMap>
+
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/GitHubUserName/GrimePlugin.1</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="BepInEx.Analyzers" Version="1.0.8" PrivateAssets="all" />
     <PackageReference Include="BepInEx.Core" Version="5.4.21" />
-    <PackageReference Include="BepInEx.PluginInfoProps" Version="1.1.0" />
-    <PackageReference Include="UnityEngine.Modules" Version="UnityVersion" IncludeAssets="compile" />
-    <!--If you're unable resolve this dependency, check that you're using the nuget v3 package feed instead of v2.-->
-    <PackageReference Include="Grime.GameLibs" Version="2.0.0-grimeGrimeVersion"/>
+    <PackageReference Include="HarmonyX" Version="2.9.0" />
+    <PackageReference Include="Harmonize" Version="1.0.3" PrivateAssets="all" />
+    <PackageReference Include="Hamunii.BepInEx.AutoPlugin" Version="2.0.1" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.25.0" PrivateAssets="all" />
+    <PackageReference Include="UnityEngine.Modules" Version="2021.3.30" IncludeAssets="compile" />
+    <PackageReference Include="Grime.GameLibs" Version="*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Remove="thunderstore/temp;thunderstore/dist" />
+    <None Include="README.md" Pack="True" PackagePath="README.md" />
+    <None Include="thunderstore/icon.png" Pack="True" PackagePath="icon.png" />
   </ItemGroup>
 
   <Target Name="CopyMod" AfterTargets="PostBuildEvent">
-      <PropertyGroup>
-          <GrimeFolder>GrimeInstallPath</GrimeFolder>
-          <ModFolder>$(GrimeFolder)/Mods/$(TargetName)</ModFolder>
-      </PropertyGroup>
+    <!-- 
+    If you need to bundle additional files in your mod, include them here. Due to Thunderstore packaging rules,
+    it may be required to specify a different local directory from pack directory to get equivalent behavior.
+    See https://wiki.thunderstore.io/mods/packaging-your-mods for more information.
+    -->
+    <ItemGroup>
+      <Binaries Include="$(TargetPath)" LocalDir="/" PackDir="/" />
+      <Binaries Include="$(TargetDir)/$(TargetName).pdb" LocalDir="/" PackDir="/" />
+    </ItemGroup>
+    <PropertyGroup>
+      <ThunderstoreDir>$(ProjectDir)/thunderstore</ThunderstoreDir>
+    </PropertyGroup>
 
-      <ItemGroup>
-          <Binaries Include="$(TargetPath)"/>
-          <Binaries Include="$(TargetDir)/$(TargetName).pdb"/>
-      </ItemGroup>
+    <!-- Local install -->
+    <Copy
+      SourceFiles="@(Binaries)"
+      DestinationFolder="$(GrimePluginsFolder)/ThunderstoreUserName-$(AssemblyTitle)/%(Binaries.LocalDir)"
+      Condition="'$(GrimePluginsFolder)' != '' And Exists('$(GrimePluginsFolder)')"
+    />
 
-      <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ModFolder)/plugins" />
-
-      <PropertyGroup>
-          <ExportFolder>bin/Publish</ExportFolder>
-      </PropertyGroup>
-      
-      <Copy SourceFiles="@(Binaries)" DestinationFolder="$(ExportFolder)/archive/plugins"/>
-      <ZipDirectory SourceDirectory="$(ExportFolder)/archive" DestinationFile="$(ExportFolder)/$(TargetName).zip" Overwrite="True"/>
-      <RemoveDir Directories="$(ExportFolder)/archive"/>
+    <!-- Thunderstore packaging -->
+    <RemoveDir Directories="$(ThunderstoreDir)/temp;$(ThunderstoreDir)/dist" />
+    <MakeDir Directories="$(ThunderstoreDir)/temp" />
+    <Copy
+      SourceFiles="@(Binaries)"
+      DestinationFolder="$(ThunderstoreDir)/temp/%(Binaries.PackDir)"
+    />
+    <PropertyGroup>
+      <ThunderstorePkgVersion>$([System.String]::Copy($(Version)).Split('-')[0])</ThunderstorePkgVersion>
+    </PropertyGroup>
+    <Exec Command="dotnet tool restore" />
+    <Exec
+      Command="dotnet tcli build --config-path &quot;$(ThunderstoreDir)/thunderstore.toml&quot; --package-name &quot;$(AssemblyTitle)&quot; --package-version $(ThunderstorePkgVersion)"
+      StandardOutputImportance="High"
+      StandardErrorImportance="High"
+    />
   </Target>
 </Project>

@@ -1,0 +1,21 @@
+{
+  "$schema": "http://json.schemastore.org/template",
+  "author": "BadMagic",
+  "classifications": [ "Configuration", "GRIME" ],
+  "identity": "Grime.Modding.PathProps",
+  "name": "Grime Path Props",
+  "shortName": "grimepath",
+  "tags": {
+    "language": "C#",
+    "type": "item"
+  },
+  "symbols": {
+    "grime-install-path": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "C:/Program Files (x86)/Steam/steamapps/common/GRIME",
+      "replaces": "GrimeInstallPath",
+      "description": "The installation path of GRIME. Used to configure automatically building your mod into your installation"
+    }
+  }
+}

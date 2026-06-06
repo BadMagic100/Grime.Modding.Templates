@@ -1,51 +1,151 @@
 {
-    "$schema": "http://json.schemastore.org/template",
-    "author": "BadMagic",
-    "classifications": [ "Mod", "Plugin", "GRIME", "BepInEx" ],
-    "identity": "Grime.Modding.Plugin",
-    "name": "Grime Modding Plugin",
-    "shortName": "grimeplugin",
-    "sourceName": "GrimePlugin.1",
-    "defaultName": "GrimeMod1",
-    "preferNameDirectory": true,
-    "tags": {
-        "language": "C#",
-        "type": "project"
-    },
+  "$schema": "http://json.schemastore.org/template",
+  "author": "BadMagic",
+  "classifications": [ "Mod", "Plugin", "GRIME", "BepInEx" ],
+  "identity": "Grime.Modding.Plugin",
+  "name": "Grime Modding Plugin",
+  "shortName": "grimeplugin",
+  "sourceName": "GrimePlugin.1",
+  "defaultName": "GrimeMod1",
+  "primaryOutputs": [
+    {
+      "path": "GrimePlugin.1.csproj"
+    }
+  ],
+  "tags": {
+    "language": "C#",
+    "type": "project"
+  },
   "symbols": {
-    "GrimeInstallPath": {
+    "github-username": {
       "type": "parameter",
       "datatype": "string",
-      "defaultValue": "C:/Program Files/Steam/steamapps/common/GRIME",
-      "replaces": "GrimeInstallPath",
-      "description": "The installation path of GRIME"
-    },
-    "GrimeVersion": {
-      "type": "parameter",
-      "dataType": "choice",
-      "defaultValue": "1.3.5",
-      "replaces": "GrimeVersion",
-      "description": "The version of GRIME being modded.",
-      "choices": [
-        {
-          "choice": "1.3.5",
-          "description": "Definitive Edition latest patch."
-        }
-      ]
-    },
-    "UnityVersion": {
-      "type": "generated",
-      "replaces": "UnityVersion",
-      "generator": "switch",
-      "parameters": {
-        "dataType": "string",
-        "cases": [
-          {
-            "condition": "GrimeVersion == '1.3.5'",
-            "value": "2021.3.30"
-          }
+      "isRequired": true,
+      "replaces": "GitHubUserName",
+      "displayName": "GitHub Username",
+      "description": "Your GitHub username. Used to set the default plugin GUID and repo URLs. If you don't have a GitHub account any username will do but the pre-filled template values will be less applicable.",
+      "forms": {
+        "global": [
+          "lc"
         ]
       }
+    },
+    "thunderstore-username": {
+      "type": "parameter",
+      "datatype": "string",
+      "displayName": "Thunderstore Username",
+      "description": "Your Thunderstore username. Used to set the default Thunderstore namespace. If not specified, defaults to GitHub username."
+    },
+    "ts-or-gh-username": {
+      "type": "generated",
+      "generator": "coalesce",
+      "parameters": {
+        "sourceVariableName": "thunderstore-username",
+        "fallbackVariableName": "github-username"
+      },
+      "replaces": "ThunderstoreUserName",
+      "forms": {
+        "global": [
+          "lc"
+        ]
+      }
+    },
+    "grime-install-path": {
+      "type": "parameter",
+      "datatype": "string",
+      "defaultValue": "C:/Program Files (x86)/Steam/steamapps/common/GRIME",
+      "replaces": "GrimeInstallPath",
+      "description": "The installation path of GRIME. Used to configure automatically building your mod into your installation"
+    },
+    "polysharp": {
+      "type": "parameter",
+      "datatype": "bool",
+      "displayName": "Enable PolySharp?",
+      "description": "Whether to enable PolySharp to polyfill newer language features that do not require runtime support.",
+      "defaultValue": "false"
+    },
+    "stripped-class-name": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "stripped_class",
+      "replaces": "Plugin__1",
+      // I think it's really really cool that value forms of sourceName are not applied to file names by default
+      "fileRename": "Plugin__1"
+    },
+    "stripped-namespace-name": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "stripped_namespace",
+      "replaces": "Plugin._1"
+    },
+    "stripped-lower-class-name": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "stripped_lower_class",
+      "replaces": "plugin__1"
+    },
+    "stripped-lower-namespace-name": {
+      "type": "derived",
+      "valueSource": "name",
+      "valueTransform": "stripped_lower_namespace",
+      "replaces": "plugin._1"
+    },
+    "gitignore-rename": {
+      "type": "generated",
+      "generator": "constant",
+      "parameters": { "value": ".gitignore" },
+      "fileRename": ".gitignore.template"
     }
-  }
+  },
+  "forms": {
+    "lc": {
+      "identifier": "lowerCase"
+    },
+    "strip_grime_prefix": {
+      "identifier": "replace",
+      "pattern": "[Gg][Rr][Ii][Mm][Ee](.*)",
+      "replacement": "$1"
+    },
+    "stripped_class": {
+      "identifier": "chain",
+      "steps": [ "strip_grime_prefix", "safe_name" ]
+    },
+    "stripped_namespace": {
+      "identifier": "chain",
+      "steps": [ "strip_grime_prefix", "safe_namespace" ]
+    },
+    "stripped_lower_class": {
+      "identifier": "chain",
+      "steps": [ "strip_grime_prefix", "lower_safe_name" ]
+    },
+    "stripped_lower_namespace": {
+      "identifier": "chain",
+      "steps": [ "strip_grime_prefix", "lower_safe_namespace" ]
+    }
+  },
+  "postActions": [
+    {
+      "description": "Adding reference to PolySharp",
+      "actionId": "B17581D1-C5C9-4489-8F0A-004BE667B814",
+      "condition": "polysharp",
+      "manualInstructions": [
+        {
+          "text": "Run `dotnet add package PolySharp`"
+        }
+      ],
+      "args": {
+        "referenceType": "package",
+        "reference": "PolySharp"
+      }
+    },
+    {
+      "description": "Restore dependencies",
+      "manualInstructions": [
+        {
+          "text": "Run `dotnet restore`"
+        }
+      ],
+      "actionId": "210D431B-A78B-4D2F-B762-4ED3E3EA9025"
+    }
+  ]
 }
