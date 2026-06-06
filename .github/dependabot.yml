@@ -1,0 +1,34 @@
+version: 2    
+updates:
+  - directory: /
+    exclude-paths: ["Grime.Modding.Templates/content/"]
+    package-ecosystem: nuget
+    schedule:
+      interval: daily
+  - directory: /
+    exclude-paths: ["Grime.Modding.Templates/content/"]
+    package-ecosystem: github-actions
+    schedule:
+      interval: daily
+  # distinct groups so that PRs will clearly indicate if the update is for the template package, or the template content
+  - directory: Grime.Modding.Templates/content/
+    package-ecosystem: nuget
+    ignore:
+      - dependency-name: BepInEx.Core
+      - dependency-name: HarmonyX
+      - dependency-name: UnityEngine.Modules
+    schedule:
+      interval: daily
+    groups:
+      content-deps:
+        patterns: 
+          - "*"
+  - directories:
+      - Grime.Modding.Templates/content/**/.github/workflows/
+    package-ecosystem: github-actions
+    schedule:
+      interval: daily
+    groups:
+      content-deps:
+        patterns:
+          - "*"
