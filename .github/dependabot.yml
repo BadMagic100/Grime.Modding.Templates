@@ -1,17 +1,17 @@
 version: 2    
 updates:
   - directory: /
-    exclude-paths: ["Grime.Modding.Templates/content/"]
+    exclude-paths: ["content/"]
     package-ecosystem: nuget
     schedule:
       interval: daily
   - directory: /
-    exclude-paths: ["Grime.Modding.Templates/content/"]
+    exclude-paths: ["content/"]
     package-ecosystem: github-actions
     schedule:
       interval: daily
   # distinct groups so that PRs will clearly indicate if the update is for the template package, or the template content
-  - directory: Grime.Modding.Templates/content/
+  - directory: content/
     package-ecosystem: nuget
     ignore:
       - dependency-name: BepInEx.Core
@@ -24,7 +24,7 @@ updates:
         patterns: 
           - "*"
   - directories:
-      - Grime.Modding.Templates/content/**/.github/workflows/
+      - content/**/.github/workflows/
     package-ecosystem: github-actions
     schedule:
       interval: daily
