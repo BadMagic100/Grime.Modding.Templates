@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      NUPKG_PATH: Grime.Modding.Templates/bin/Release/*.nupkg
+      NUPKG_PATH: bin/Release/*.nupkg
 
     steps:
     - uses: actions/checkout@v6
